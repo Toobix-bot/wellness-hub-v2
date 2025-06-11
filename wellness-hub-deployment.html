@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wellness Hub - Rechtssichere Deployment-Version</title>
+    <meta name="description" content="Wellness-Framework für persönliches Wohlbefinden - Kein medizinischer Rat, nur für Wellness-Zwecke">
+    <meta name="keywords" content="wellness, wohlbefinden, meditation, dankbarkeit, persönliche entwicklung">
+    <meta name="robots" content="index, follow">
+    
+    <!-- RECHTLICHER DISCLAIMER -->
+    <!--
+    WICHTIGER HAFTUNGSAUSSCHLUSS:
+    - Diese Anwendung dient ausschließlich zu Wellness- und Wohlbefindenszwecken
+    - Sie ersetzt KEINE professionelle medizinische Beratung, Diagnose oder Behandlung
+    - Bei gesundheitlichen Problemen konsultieren Sie immer einen qualifizierten Arzt
+    - Alle Daten werden nur lokal gespeichert - keine externen Übertragungen
+    - MIT License - Open Source Software
+    -->
+    
+    <style>
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+        }
+        
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            height: 100vh; 
+            overflow: hidden; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .disclaimer-banner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 5px;
+            font-size: 12px;
+            z-index: 1000;
+        }
+        
+        .container { 
+            display: flex; 
+            height: 100vh; 
+            padding-top: 35px;
+        }
+        
+        .sidebar {
+            width: 380px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-right: 2px solid rgba(255, 255, 255, 0.3);
+            padding: 20px;
+            overflow-y: auto;
+            box-shadow: 2px 0 20px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .badge {
+            padding: 8px 16px;
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border-radius: 25px;
+            font-size: 12px;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .legal-notice {
+            background: rgba(255, 235, 59, 0.2);
+            border: 2px solid #FFC107;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 12px;
+            color: #e65100;
+            text-align: center;
+        }
+        
+        .categories-title {
+            font-size: 20px;
+            margin-bottom: 25px;
+            color: #37474f;
+            border-bottom: 3px solid #00bcd4;
+            padding-bottom: 12px;
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        .category {
+            margin-bottom: 20px;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .category:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .category-header {
+            padding: 15px;
+            color: white;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            font-size: 16px;
+        }
+        
+        .category-icon {
+            font-size: 24px;
+            margin-right: 12px;
+        }
+        
+        .category-modules {
+            background: white;
+            padding: 15px;
+            display: none;
+        }
+        
+        .category.active .category-modules {
+            display: block;
+        }
+        
+        .module {
+            padding: 10px;
+            margin: 8px 0;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+            border-left: 4px solid;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        
+        .module:hover {
+            background: rgba(255, 255, 255, 1);
+            transform: translateX(5px);
+        }
+        
+        .main-content {
+            flex: 1;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: white;
+        }
+        
+        .welcome-text {
+            font-size: 48px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .subtitle {
+            font-size: 24px;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            max-width: 800px;
+            margin-top: 40px;
+        }
+        
+        .feature-card {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-5px);
+        }
+        
+        /* Kategorie-spezifische Farben */
+        .mental-emotional { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .growth-transformation { background: linear-gradient(135deg, #f093fb, #f5576c); }
+        .relationships-community { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+        .creativity-expression { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+        .lifestyle-wellness { background: linear-gradient(135deg, #fa709a, #fee140); }
+        .tools-systems { background: linear-gradient(135deg, #a8edea, #fed6e3); }
+        .advanced-esoteric { background: linear-gradient(135deg, #667eea, #764ba2); }
+        
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            text-align: center;
+            padding: 10px;
+            font-size: 12px;
+        }
+        
+        @media (max-width: 768px) {
+            .container { flex-direction: column; }
+            .sidebar { width: 100%; height: 50vh; }
+            .main-content { padding: 20px; }
+            .welcome-text { font-size: 32px; }
+            .subtitle { font-size: 18px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="disclaimer-banner">
+        ⚠️ RECHTLICHER HINWEIS: Nur für Wellness-Zwecke - Kein medizinischer Rat - Bei Gesundheitsproblemen Arzt konsultieren
+    </div>
+    
+    <div class="container">
+        <div class="sidebar">
+            <div class="header">
+                <div class="title">🌟 Wellness Hub</div>
+                <div class="badge">RECHTSSICHER & DSGVO-KONFORM</div>
+            </div>
+            
+            <div class="legal-notice">
+                <strong>⚖️ HAFTUNGSAUSSCHLUSS:</strong><br>
+                Diese App dient nur dem Wohlbefinden. Kein Ersatz für medizinische Beratung!
+            </div>
+            
+            <div class="categories-title">🏛️ 7 Wellness-Kategorien</div>
+            
+            <div class="category mental-emotional" onclick="toggleCategory(this)">
+                <div class="category-header">
+                    <span class="category-icon">🧠</span>
+                    Mental & Emotional (7 Module)
+                </div>
+                <div class="category-modules">
+                    <div class="module" style="border-left-color: #667eea;">🧘 Therapie & Heilung</div>
+                    <div class="module" style="border-left-color: #667eea;">🌸 Stille & Meditation</div>
+                    <div class="module" style="border-left-color: #667eea;">😊 Freude & Lachen</div>
+                    <div class="module" style="border-left-color: #667eea;">🧘‍♀️ Emotionale Intelligenz</div>
+                    <div class="module" style="border-left-color: #667eea;">🌈 Bewusstsein</div>
+                    <div class="module" style="border-left-color: #667eea;">💚 Mental Health</div>
+                    <div class="module" style="border-left-color: #667eea;">🎭 Emotionen</div>
+                </div>
+            </div>
+            
+            <div class="category growth-transformation" onclick="toggleCategory(this)">
+                <div class="category-header">
+                    <span class="category-icon">🌱</span>
+                    Growth & Transformation (6 Module)
+                </div>
+                <div class="category-modules">
+                    <div class="module" style="border-left-color: #f093fb;">🦋 Transformation</div>
+                    <div class="module" style="border-left-color: #f093fb;">📈 Fortschritt</div>
+                    <div class="module" style="border-left-color: #f093fb;">🌟 Selbstverwirklichung</div>
+                    <div class="module" style="border-left-color: #f093fb;">🗺️ Roadmap</div>
+                    <div class="module" style="border-left-color: #f093fb;">⚡ Herausforderungen</div>
+                    <div class="module" style="border-left-color: #f093fb;">🎯 Real World Challenges</div>
+                </div>
+            </div>
+            
+            <div class="category relationships-community" onclick="toggleCategory(this)">
+                <div class="category-header">
+                    <span class="category-icon">❤️</span>
+                    Relationships & Community (5 Module)
+                </div>
+                <div class="category-modules">
+                    <div class="module" style="border-left-color: #4facfe;">💕 Liebe & Beziehungen</div>
+                    <div class="module" style="border-left-color: #4facfe;">🤝 Community</div>
+                    <div class="module" style="border-left-color: #4facfe;">🌐 Soziales Netzwerk</div>
+                    <div class="module" style="border-left-color: #4facfe;">👥 Begleiter</div>
+                    <div class="module" style="border-left-color: #4facfe;">🌍 Impact</div>
+                </div>
+            </div>
+            
+            <div class="category creativity-expression" onclick="toggleCategory(this)">
+                <div class="category-header">
+                    <span class="category-icon">🎨</span>
+                    Creativity & Expression (6 Module)
+                </div>
+                <div class="category-modules">
+                    <div class="module" style="border-left-color: #43e97b;">🎨 Creative Hub</div>
+                    <div class="module" style="border-left-color: #43e97b;">📖 Geschichten</div>
+                    <div class="module" style="border-left-color: #43e97b;">📝 Tagebuch</div>
+                    <div class="module" style="border-left-color: #43e97b;">🎵 Musik & Kultur</div>
+                    <div class="module" style="border-left-color: #43e97b;">💻 Programmier-Workshop</div>
+                    <div class="module" style="border-left-color: #43e97b;">🎮 Gaming Corner</div>
+                </div>
+            </div>
+            
+            <div class="category lifestyle-wellness" onclick="toggleCategory(this)">
+                <div class="category-header">
+                    <span class="category-icon">🌿</span>
+                    Lifestyle & Wellness (5 Module)
+                </div>
+                <div class="category-modules">
+                    <div class="module" style="border-left-color: #fa709a;">🙏 Dankbarkeit</div>
+                    <div class="module" style="border-left-color: #fa709a;">🌿 Naturheilkunde</div>
+                    <div class="module" style="border-left-color: #fa709a;">🏃 Aktivitäten</div>
+                    <div class="module" style="border-left-color: #fa709a;">🌐 Externe Plattformen</div>
+                    <div class="module" style="border-left-color: #fa709a;">🛒 Shop</div>
+                </div>
+            </div>
+            
+            <div class="category tools-systems" onclick="toggleCategory(this)">
+                <div class="category-header">
+                    <span class="category-icon">🔧</span>
+                    Tools & Systems (4 Module)
+                </div>
+                <div class="category-modules">
+                    <div class="module" style="border-left-color: #a8edea;">🎮 Gamification</div>
+                    <div class="module" style="border-left-color: #a8edea;">⚙️ Settings</div>
+                    <div class="module" style="border-left-color: #a8edea;">🤖 KI-Coaches</div>
+                    <div class="module" style="border-left-color: #a8edea;">🧮 Entscheidungsmatrix</div>
+                </div>
+            </div>
+            
+            <div class="category advanced-esoteric" onclick="toggleCategory(this)">
+                <div class="category-header">
+                    <span class="category-icon">✨</span>
+                    Advanced & Esoteric (5 Module)
+                </div>
+                <div class="category-modules">
+                    <div class="module" style="border-left-color: #667eea;">🎯 Life RPG</div>
+                    <div class="module" style="border-left-color: #667eea;">👤 Charakter Erstellen</div>
+                    <div class="module" style="border-left-color: #667eea;">🌌 Astral Soul Journey</div>
+                    <div class="module" style="border-left-color: #667eea;">⚖️ Dualitäts-Matrix</div>
+                    <div class="module" style="border-left-color: #667eea;">🔮 Philosophie</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="welcome-text">Willkommen im Wellness Hub!</div>
+            <div class="subtitle">38+ Module für dein ganzheitliches Wohlbefinden</div>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h3>🔒 100% Sicher</h3>
+                    <p>Lokale Datenspeicherung, keine externen Server</p>
+                </div>
+                <div class="feature-card">
+                    <h3>⚖️ Rechtssicher</h3>
+                    <p>MIT License, medizinische Disclaimer, DSGVO-konform</p>
+                </div>
+                <div class="feature-card">
+                    <h3>🌟 Ganzheitlich</h3>
+                    <p>7 Kategorien für alle Lebensbereiche</p>
+                </div>
+                <div class="feature-card">
+                    <h3>🚀 Modern</h3>
+                    <p>Responsive Design, PWA-fähig</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        © 2024 Wellness Hub Framework | MIT License | Kein medizinischer Rat | Lokale Datenspeicherung | 
+        <a href="#" style="color: #00bcd4;">Datenschutz</a> | 
+        <a href="#" style="color: #00bcd4;">Impressum</a>
+    </div>
+    
+    <script>
+        function toggleCategory(element) {
+            // Schließe alle anderen Kategorien
+            document.querySelectorAll('.category.active').forEach(cat => {
+                if (cat !== element) {
+                    cat.classList.remove('active');
+                }
+            });
+            
+            // Toggle die aktuelle Kategorie
+            element.classList.toggle('active');
+            
+            // Optional: Lokale Speicherung der Auswahl
+            const categoryName = element.querySelector('.category-header').textContent;
+            console.log('Kategorie ausgewählt:', categoryName);
+            
+            // Lokale Speicherung (DSGVO-konform)
+            if (element.classList.contains('active')) {
+                localStorage.setItem('lastSelectedCategory', categoryName);
+            }
+        }
+        
+        // Beim Laden: Letzte Auswahl wiederherstellen
+        document.addEventListener('DOMContentLoaded', function() {
+            const lastCategory = localStorage.getItem('lastSelectedCategory');
+            if (lastCategory) {
+                console.log('Letzte Kategorie wiederhergestellt:', lastCategory);
+            }
+            
+            // Rechtlicher Disclaimer-Check
+            const disclaimerAccepted = localStorage.getItem('disclaimerAccepted');
+            if (!disclaimerAccepted) {
+                setTimeout(() => {
+                    if (confirm('WICHTIGER HINWEIS: Diese App dient nur dem Wohlbefinden und ersetzt keine medizinische Beratung. Verstanden?')) {
+                        localStorage.setItem('disclaimerAccepted', 'true');
+                    }
+                }, 2000);
+            }
+        });
+        
+        // PWA-Installation (optional)
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            deferredPrompt = e;
+            console.log('PWA-Installation verfügbar');
+        });
+    </script>
+</body>
+</html>

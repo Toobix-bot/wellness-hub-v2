@@ -1,0 +1,295 @@
+// Service Worker für PWA Offline-Funktionalität
+const CACHE_NAME = 'wellness-hub-v1';
+const STATIC_CACHE = 'wellness-hub-static-v1';
+const DYNAMIC_CACHE = 'wellness-hub-dynamic-v1';
+
+// Statische Assets die gecacht werden sollen
+const STATIC_ASSETS = [
+  '/',
+  '/life-rpg',
+  '/stille',
+  '/dankbarkeit',
+  '/therapie',
+  '/fortschritt',
+  '/manifest.json',
+  '/favicon.ico',
+  '/favicon.svg'
+];
+
+// API Routen die gecacht werden sollen
+const CACHEABLE_APIS = [
+  '/api/wellness',
+  '/api/progress',
+  '/api/life-rpg'
+];
+
+// Installation Event
+self.addEventListener('install', event => {
+  console.log('🚀 Wellness Hub Service Worker: Installing...');
+  
+  event.waitUntil(
+    caches.open(STATIC_CACHE)
+      .then(cache => {
+        console.log('📦 Caching static assets...');
+        return cache.addAll(STATIC_ASSETS);
+      })
+      .then(() => {
+        console.log('✅ Static assets cached successfully');
+        return self.skipWaiting();
+      })
+      .catch(error => {
+        console.error('❌ Error caching static assets:', error);
+      })
+  );
+});
+
+// Activation Event
+self.addEventListener('activate', event => {
+  console.log('🔄 Wellness Hub Service Worker: Activating...');
+  
+  event.waitUntil(
+    caches.keys()
+      .then(cacheNames => {
+        return Promise.all(
+          cacheNames.map(cacheName => {
+            if (cacheName !== STATIC_CACHE && cacheName !== DYNAMIC_CACHE) {
+              console.log('🗑️ Deleting old cache:', cacheName);
+              return caches.delete(cacheName);
+            }
+          })
+        );
+      })
+      .then(() => {
+        console.log('✅ Service Worker activated');
+        return self.clients.claim();
+      })
+  );
+});
+
+// Fetch Event - Caching Strategy
+self.addEventListener('fetch', event => {
+  const { request } = event;
+  const url = new URL(request.url);
+
+  // Skip caching for non-GET requests
+  if (request.method !== 'GET') return;
+
+  // Skip caching for external requests
+  if (url.origin !== location.origin) return;
+
+  // Strategy für verschiedene Inhaltstypen
+  if (isStaticAsset(request)) {
+    // Cache First für statische Assets
+    event.respondWith(cacheFirst(request));
+  } else if (isAPIRequest(request)) {
+    // Network First für API Calls
+    event.respondWith(networkFirst(request));
+  } else if (isPageRequest(request)) {
+    // Stale While Revalidate für Seiten
+    event.respondWith(staleWhileRevalidate(request));
+  } else {
+    // Network Only für alles andere
+    event.respondWith(fetch(request));
+  }
+});
+
+// Background Sync für Offline-Daten
+self.addEventListener('sync', event => {
+  console.log('🔄 Background sync triggered:', event.tag);
+  
+  if (event.tag === 'wellness-data-sync') {
+    event.waitUntil(syncWellnessData());
+  } else if (event.tag === 'life-rpg-progress-sync') {
+    event.waitUntil(syncLifeRPGProgress());
+  }
+});
+
+// Push Notifications
+self.addEventListener('push', event => {
+  console.log('📧 Push notification received');
+  
+  const options = {
+    body: event.data ? event.data.text() : 'Neue Wellness-Erinnerung!',
+    icon: '/icon-192.png',
+    badge: '/icon-192.png',
+    tag: 'wellness-reminder',
+    renotify: true,
+    actions: [
+      {
+        action: 'open-app',
+        title: 'App öffnen',
+        icon: '/icon-192.png'
+      },
+      {
+        action: 'dismiss',
+        title: 'Schließen'
+      }
+    ],
+    data: {
+      url: '/'
+    }
+  };
+
+  event.waitUntil(
+    self.registration.showNotification('Wellness Hub', options)
+  );
+});
+
+// Notification Click Handler
+self.addEventListener('notificationclick', event => {
+  console.log('🔔 Notification clicked:', event.action);
+  
+  event.notification.close();
+  
+  if (event.action === 'open-app') {
+    event.waitUntil(
+      clients.openWindow(event.notification.data.url || '/')
+    );
+  }
+});
+
+// Helper Functions
+function isStaticAsset(request) {
+  return request.destination === 'style' || 
+         request.destination === 'script' || 
+         request.destination === 'image' ||
+         request.url.includes('/_next/static/');
+}
+
+function isAPIRequest(request) {
+  return request.url.includes('/api/') || 
+         CACHEABLE_APIS.some(api => request.url.includes(api));
+}
+
+function isPageRequest(request) {
+  return request.destination === 'document';
+}
+
+// Caching Strategies
+async function cacheFirst(request) {
+  try {
+    const cachedResponse = await caches.match(request);
+    if (cachedResponse) {
+      return cachedResponse;
+    }
+    
+    const networkResponse = await fetch(request);
+    if (networkResponse.ok) {
+      const cache = await caches.open(STATIC_CACHE);
+      cache.put(request, networkResponse.clone());
+    }
+    return networkResponse;
+  } catch (error) {
+    console.error('Cache First strategy failed:', error);
+    return new Response('Offline - Content not available', { status: 503 });
+  }
+}
+
+async function networkFirst(request) {
+  try {
+    const networkResponse = await fetch(request);
+    if (networkResponse.ok) {
+      const cache = await caches.open(DYNAMIC_CACHE);
+      cache.put(request, networkResponse.clone());
+    }
+    return networkResponse;
+  } catch (error) {
+    console.log('Network failed, trying cache...');
+    const cachedResponse = await caches.match(request);
+    if (cachedResponse) {
+      return cachedResponse;
+    }
+    return new Response(JSON.stringify({ 
+      error: 'Offline - API not available',
+      offline: true 
+    }), { 
+      status: 503,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+}
+
+async function staleWhileRevalidate(request) {
+  const cache = await caches.open(DYNAMIC_CACHE);
+  const cachedResponse = await cache.match(request);
+  
+  const fetchPromise = fetch(request).then(networkResponse => {
+    if (networkResponse.ok) {
+      cache.put(request, networkResponse.clone());
+    }
+    return networkResponse;
+  }).catch(() => cachedResponse);
+
+  return cachedResponse || fetchPromise;
+}
+
+// Background Sync Functions
+async function syncWellnessData() {
+  try {
+    // Hier würden wir Offline-Daten synchronisieren
+    console.log('🔄 Syncing wellness data...');
+    
+    // Beispiel: Offline-Einträge aus IndexedDB holen und senden
+    const offlineEntries = await getOfflineEntries();
+    
+    for (const entry of offlineEntries) {
+      try {
+        await fetch('/api/sync-wellness-data', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(entry)
+        });
+        await removeOfflineEntry(entry.id);
+      } catch (error) {
+        console.error('Failed to sync entry:', entry.id, error);
+      }
+    }
+    
+    console.log('✅ Wellness data sync completed');
+  } catch (error) {
+    console.error('❌ Wellness data sync failed:', error);
+  }
+}
+
+async function syncLifeRPGProgress() {
+  try {
+    console.log('🎮 Syncing Life-RPG progress...');
+    
+    const offlineProgress = await getOfflineRPGProgress();
+    
+    if (offlineProgress.length > 0) {
+      await fetch('/api/sync-life-rpg', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(offlineProgress)
+      });
+      
+      await clearOfflineRPGProgress();
+    }
+    
+    console.log('✅ Life-RPG sync completed');
+  } catch (error) {
+    console.error('❌ Life-RPG sync failed:', error);
+  }
+}
+
+// IndexedDB Helper Functions (Placeholder)
+async function getOfflineEntries() {
+  // Implementierung für IndexedDB Zugriff
+  return [];
+}
+
+async function removeOfflineEntry(id) {
+  // Implementierung für IndexedDB Löschung
+}
+
+async function getOfflineRPGProgress() {
+  // Implementierung für Life-RPG Offline-Daten
+  return [];
+}
+
+async function clearOfflineRPGProgress() {
+  // Implementierung für Life-RPG Cache-Clearing
+}
+
+console.log('🌟 Wellness Hub Service Worker loaded successfully!');
