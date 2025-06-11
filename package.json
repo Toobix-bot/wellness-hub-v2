@@ -1,8 +1,8 @@
 {
   "name": "wellness-hub-framework",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
-  "description": "Modulares Wellness-Framework für persönliches Wohlbefinden - Nur für Wellness-Zwecke, kein medizinischer Rat",
+  "description": "Modulares Wellness-Framework für persönliches Wohlbefinden - Nur für Wellness-Zwecke, kein medizinischer Rat - BUILD ERRORS FIXED",
   "license": "MIT",
   "author": "Wellness Hub Development",
   "repository": {

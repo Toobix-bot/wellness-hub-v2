@@ -1,0 +1,1 @@
+cd "c:\Users\micha\NEU\NEU_V1\Fourcen" && git add . && git commit -m "FORCE VERCEL REBUILD: All build errors fixed and ready for production" && git push origin main && echo "SUCCESS: Pushed to GitHub - Vercel should rebuild now!"
