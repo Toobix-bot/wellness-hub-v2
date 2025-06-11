@@ -24,7 +24,7 @@
 
 ```powershell
 # GitHub Remote hinzufügen (DEIN-USERNAME ersetzen!)
-git remote add origin https://github.com/DEIN-USERNAME/wellness-hub-framework.git
+git remote add origin https://github.com/Toobix-bot/wellness-hub-framework.git
 
 # Branch auf main setzen
 git branch -M main

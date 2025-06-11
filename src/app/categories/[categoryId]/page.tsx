@@ -1,6 +1,3 @@
-'use client';
-
-import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { wellnessCategories, getModulesForCategory } from '@/utils/wellnessConfig';
 import EnhancedWellnessCard from '@/components/EnhancedWellnessCard';
@@ -45,12 +42,7 @@ export default function CategoryPage({ params }: CategoryPageProps) {
       {/* Hero Section */}
       <div className={`bg-gradient-to-r ${category.color} text-white py-16`}>
         <div className="container-wellness">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-center"
-          >
+          <div className="text-center">
             <div className="text-6xl mb-6">{category.icon}</div>
             <h1 className="text-4xl md:text-6xl font-bold mb-6">
               {category.name}
@@ -60,18 +52,15 @@ export default function CategoryPage({ params }: CategoryPageProps) {
             </p>
             <div className="flex flex-wrap justify-center gap-3">
               {category.features?.map((feature, index) => (
-                <motion.span
+                <span
                   key={feature}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.3 + index * 0.1 }}
                   className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-medium"
                 >
                   {feature}
-                </motion.span>
+                </span>
               ))}
             </div>
-          </motion.div>
+          </div>
         </div>
       </div>
 
@@ -90,11 +79,7 @@ export default function CategoryPage({ params }: CategoryPageProps) {
 
       {/* Modules Grid */}
       <div className="container-wellness pb-16">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.4 }}
-        >
+        <div>
           <h2 className="text-2xl font-bold wellness-heading mb-8">
             Verfügbare Module ({modules.length})
           </h2>
@@ -102,12 +87,8 @@ export default function CategoryPage({ params }: CategoryPageProps) {
           {modules.length > 0 ? (
             <div className="grid-wellness">
               {modules.map((module, index) => (
-                <motion.div
-                  key={module.id}
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 * index }}
-                >                  <EnhancedWellnessCard
+                <div key={module.id}>
+                  <EnhancedWellnessCard
                     title={module.name}
                     description={module.description}
                     icon={module.icon}
@@ -119,7 +100,7 @@ export default function CategoryPage({ params }: CategoryPageProps) {
                     estimatedTime={module.estimatedTime}
                     premium={module.premium}
                   />
-                </motion.div>
+                </div>
               ))}
             </div>
           ) : (
@@ -133,15 +114,10 @@ export default function CategoryPage({ params }: CategoryPageProps) {
               </p>
             </div>
           )}
-        </motion.div>
+        </div>
 
         {/* Category Stats */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6"
-        >
+        <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="wellness-card p-6 text-center">
             <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-2">
               {modules.length}
@@ -160,7 +136,7 @@ export default function CategoryPage({ params }: CategoryPageProps) {
             </div>
             <div className="wellness-text-muted">Premium Features</div>
           </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   );
